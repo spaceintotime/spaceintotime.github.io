@@ -144,6 +144,15 @@ words</a>
 </ol>
 </li>
 </ol>
+<p>This post is about padding oracle attack in CBC-mode block ciphers. A padding oracle is a decryption function which leaks validitidy of the encrypted data, it allows an attacker to decrypt encrypted dat></p>
+<h2 id=padding class=anchor-link><a href=#padding>Padding</a></h2>
+<p>As the name suggest, block ciphers encrypt/decrypt messages in blocks of certain size. When data doesn&rsquo;t match the block size, it has to be padded in a specific format so that the receiver is able to id></p>
+<p>For example, for an 8-byte block, if the plaintext is of 3-bytes, 5-bytes of padding will be added (green is plaintext and yellow is padding):</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135205173-9e892685-4f4c-4f75-9b43-55ce4625f12c.png alt="3-bytes data and 5-bytes padding"></p>
+<p>Similarly, for 6 bytes of plaintext, 2-bytes of padding will be added:</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135205369-41273177-da1f-4a0c-bc76-9ddd4c61ec68.png alt=image></p>
+<p>Notice that for 5 bytes padding, we added 05 and for 2 bytes padding we added 02 (it’s in hexadecimal). What if plaintext is size of a block? We will still add padding by adding another block as shown b></p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135205386-b9d37906-0292-467f-80de-f67274c20d41.png alt=image></p>
 </div>
 <div class=container>
 <hr>
