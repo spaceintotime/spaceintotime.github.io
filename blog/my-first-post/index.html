@@ -1,0 +1,151 @@
+<!doctype html><html lang=en-us>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="chrome=1">
+<meta name=HandheldFriendly content="True">
+<meta name=MobileOptimized content="320">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=referrer content="no-referrer">
+<meta name=description content="Website Description">
+<title>
+Padding Oracle Attack in Cbc Mode - Introduction
+</title>
+<meta property="og:title" content="Padding Oracle Attack in CBC-mode - Introduction">
+<meta property="og:type" content="website">
+<meta property="og:description" content="Website Description">
+<meta property="og:url" content="http://spaceintotime.github.io/blog/my-first-post/">
+<meta property="og:site_name" content="Introduction">
+<meta property="og:image" content="http://spaceintotime.github.io/home/profile.jpg">
+<link rel="shortcut icon" href=/img/fav.ico>
+<link rel=stylesheet href=/css/main.min.84f93172277cdc39bfd0f5477be31c4c7a2f21fbab96f9bb0604dc9aeece07bd.css integrity="sha256-hPkxcid83Dm/0PVHe+McTHovIfurlvm7BgTcmu7OB70=" crossorigin=anonymous media=screen>
+</head>
+<body>
+<section id=top class=section>
+<div class="container hero fade-in one">
+<h1 class="bold-title is-1">Blog</h1>
+</div>
+<div class="section fade-in two">
+<div class=container>
+<hr>
+<nav class=navbar role=navigation aria-label="main navigation">
+<a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span>
+</a>
+<div class=navbar-menu id=navMenu>
+<a class=navbar-item href=/>main</a>
+<a class=navbar-item href=/#about>About</a>
+<a class=navbar-item href=http://spaceintotime.github.io/blog/>
+Back to Blog
+</a>
+<a class=navbar-item href=/#contact>Contact</a>
+</div>
+</nav>
+<hr>
+</div>
+<div class=container>
+<h2 class="title is-1 top-pad strong-post-title">
+<a href=http://spaceintotime.github.io/blog/my-first-post/>Padding Oracle Attack in CBC-mode</a>
+</h2>
+<div class=post-data>
+Oct 1, 2021 |
+5 minutes read
+</div>
+<p>
+Tags:
+<a href=/tags/padding-oracle>
+padding-oracle</a>,
+<a href=/tags/cbc>
+cbc</a>,
+<a href=/tags/cryptography>
+cryptography</a>
+</p>
+</div>
+<div class="container markdown top-pad">
+<p>This post is about padding oracle attack in CBC-mode block ciphers. A padding oracle is a decryption function which leaks validitidy of the encrypted data, it allows an attacker to decrypt encrypted data without any knowledge of the key. It&rsquo;s very simple yet elegant attack which can lead to full plaintext recovery by just observing the decryption oracle errors.</p>
+<h2 id=padding class=anchor-link><a href=#padding>Padding</a></h2>
+<p>As the name suggest, block ciphers encrypt/decrypt messages in blocks of certain size. When data doesn&rsquo;t match the block size, it has to be padded in a specific format so that the receiver is able to identify the padding and remove it. A commonly used padding scheme is PKCS#7, where the final block of plaintext is padded with N bytes of value N.</p>
+<p>For example, for an 8-byte block, if the plaintext is of 3-bytes, 5-bytes of padding will be added (green is plaintext and yellow is padding):</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135205173-9e892685-4f4c-4f75-9b43-55ce4625f12c.png alt="3-bytes data and 5-bytes padding"></p>
+<p>Similarly, for 6 bytes of plaintext, 2-bytes of padding will be added:</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135205369-41273177-da1f-4a0c-bc76-9ddd4c61ec68.png alt=image></p>
+<p>Notice that for 5 bytes padding, we added 05 and for 2 bytes padding we added 02 (it’s in hexadecimal). What if plaintext is size of a block? We will still add padding by adding another block as shown below:</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135205386-b9d37906-0292-467f-80de-f67274c20d41.png alt=image></p>
+<h2 id=cbc-decryption-mode class=anchor-link><a href=#cbc-decryption-mode>CBC Decryption Mode</a></h2>
+<p>The below figure describes CBC mode decryption (taken from <a href=https://upload.wikimedia.org/wikipedia/commons/2/2a/CBC_decryption.svg>Wikipedia</a>):
+<img src=https://user-images.githubusercontent.com/47728912/135205612-f23b6307-21ec-4150-b355-bd456e878848.png alt=image></p>
+<p>The receiver will use CBC decryption to obtain the plaintext + padding. The receiver will then remove padding to recover the original message. But if the receiver finds final N bytes not equal to N, it will return an error (if it&rsquo;s vulnerable to padding oracle attack), we will call it error_1. For example, the following block will return an error:</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135205866-4353636c-a82e-418f-8234-3e7504f42a1b.png alt=image></p>
+<p>In above block, the 03 indicates that the padding is of size 3-bytes, but only 2-bytes were found.</p>
+<p>And if the receiver receives an invalid cipher text and valid padding, it will also return an error, let’s call it error_2.</p>
+<h2 id=situation class=anchor-link><a href=#situation>Situation</a></h2>
+<p>We assume that attacker has access to ciphertexts C1 and C2, and he is trying to recover the plaintext (P2):</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135206710-ff8eaf43-5cb0-4ead-bf87-0d54f5e7cdf1.png alt=image></p>
+<p>In above figure, I1 and I2 are intermediate stages, before the XOR operation is performed.</p>
+<p>Originally, suppose that the values of C1, I2, and P2 were as below (in hexadecimal):</p>
+<p>C1 =</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135206876-138b88da-f41d-462f-a5c4-2597cc62f6d2.png alt=image></p>
+<p>I2 =</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135206895-b4550e64-f5a2-4ef5-92a3-ca17b5374fd9.png alt=image></p>
+<p>P2 = C1 ⊕ I2 =</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135206916-9b24f6ad-be44-4ea7-99f5-1337ac9b0988.png alt=image></p>
+<p>We can see that P2 has 3-bytes of padding. Attacker does not have knowledge of I2 and P2, during the attack he will only modify C1 and try to recover P2.</p>
+<h2 id=the-attack class=anchor-link><a href=#the-attack>The Attack</a></h2>
+<p>Attacker will try to cause errors by modifying the cipher text, he especially wants to see error_1. To do so, attacker will start modifying the C1 bytes starting from the first byte, e.g., attacker will send the following C1 (red part is the modified one):
+<img src=https://user-images.githubusercontent.com/47728912/135207013-937bec25-4f16-464b-9f34-d44e6f471e65.png alt=image></p>
+<p>This may cause an error_2 but not error_1 as padding bytes are still not changed, attacker will continue changing bytes until it reaches 6th byte:
+<img src=https://user-images.githubusercontent.com/47728912/135207046-4f5c1abf-654e-4bb0-91ee-8eb226943422.png alt=image></p>
+<p>The above block will cause an error_1, because the XOR of 6th byte (A1) with 6th byte of I2 (06) is not 03. Attacker learned from this error that there is 3-bytes of padding, or the last 3-bytes of plaintext is 03.</p>
+<p>Using this information, attacker can find out final 3-bytes of I2, for example, for right most byte (using unmodified C1 here):</p>
+<p>90 ⊕ I2 (8th byte) = 03</p>
+<p>We can say: I2 (8th byte) = 90 ⊕ 03 = 93</p>
+<p>Similarly: I2 (7th byte) = 1C ⊕ 03 = 1F</p>
+<p>And: I2 (6th byte) = 05 ⊕ 03 = 06</p>
+<p>So attacker knows following about the I2 (X are unknown values):</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135207080-d5b96bf1-00ed-4cb5-acfe-eb4a28a04961.png alt=image></p>
+<p>Next, attacker wants to find out 5th byte of I2, becasue C1 directly affectes P1, attacker can try to set padding bytes to 4, i.e, final four bytes of plaintext should be 04. Since attacker already knows last 3-bytes of I2, he can easily make that last three bytes of P2 to be 04.</p>
+<p>Attacker wants this:</p>
+<p>8th byte of plaintext = 04 = C1 (8th byte) ⊕ I2 (8th byte)</p>
+<p>Since he knows I2:</p>
+<p>C1 (8th byte) ⊕ 93 = 04</p>
+<p>Yields to: C1 (8th byte) = 93 ⊕ 04 = 97</p>
+<p>Similarly, attacker will calculate 7th and 6th byte of C1 to make the plaintext 04:</p>
+<p>C1 (7th byte) = 1F ⊕ 04 = 1B</p>
+<p>C1 (6th byte) = 06 ⊕ 04 = 02</p>
+<p>Now, the C1 will look like this (blue are the changed bytes):</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135207482-b32bbe71-2b45-497b-9e47-646b5c4a6990.png alt=image></p>
+<p>Which will produce a P2 with last 3 bytes equal to 04, but the receiver will return an error_1 because the 5th byte of P2 is not 04 and receiver is expecting 4-bytes of padding. Attacker doesn’t know 5th byte of I2, so he will try different values (brute force) of C1 at 5th byte until the receiver doesn’t respond with an error_1 or the 5th byte of P2 is 04. After brute forcing 5th byte of C1, attacker will not get any error for the below payload:</p>
+<p><img src=https://user-images.githubusercontent.com/47728912/135207613-2fb703c8-0872-4d3c-af6e-f2a34f0f3aa2.png alt=image></p>
+<p>Since 1A is producing 04 at 5th byte of P2, padding will be fine. Attacker can now calculate 5th byte of I2:</p>
+<p>Since 1A = I2 (5th byte) ⊕ 04</p>
+<p>Yields to: I2 (5th byte) = 1A ⊕ 04 = 1E</p>
+<p>You can see in the original I2 value, the 5th byte is actually 1E.</p>
+<p>Now attacker can revert back to their original value of C1 and calculate original 5th byte of P2:</p>
+<p>EE ⊕ 1E = F0</p>
+<p>If you see the original value of P2 at 5th byte, it’s actually F0. So, attacker is able to recover original plaintext byte!</p>
+<p>Attacker can continue, and make the padding equal to 5, and recover 4th byte of plaintext and so on, he can recover all the plaintext byte by byte using this method.</p>
+</div>
+<div class=container>
+<hr>
+</div>
+<div class="container has-text-centered top-pad">
+<a href=#top>
+<i class="fa fa-arrow-up"></i>
+</a>
+</div>
+<div class=container>
+<hr>
+</div>
+<div class=section id=footer>
+<div class="container has-text-centered">
+<span class=footer-text>
+<a href=https://github.com/victoriadrake/hugo-theme-introduction/><strong>Introduction</strong></a> theme for <a href=http://gohugo.io/>Hugo</a>. Made with <a href=https://victoria.dev><i class="fa fa-heart"></i> and <i class="fa fa-coffee"></i></a> by open source contributors.
+</span>
+</div>
+</div>
+</div>
+</section>
+<script src=http://spaceintotime.github.io/js/bundle.f1741e9868b2f697e71cf8fccfcc12166540999b3d36f8fb9edd0882ba425d55.js integrity="sha256-8XQemGiy9pfnHPj8z8wSFmVAmZs9Nvj7nt0IgrpCXVU="></script>
+</body>
+</html>
