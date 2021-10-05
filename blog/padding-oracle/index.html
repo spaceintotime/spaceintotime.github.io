@@ -69,7 +69,7 @@ cryptography</a>
 </p>
 </div>
 <div class="container markdown top-pad">
-<p>This post is about padding oracle attack in CBC-mode block ciphers. A padding oracle is a decryption function which leaks validitidy of the encrypted data, it allows an attacker to decrypt encrypted data without any knowledge of the key. It&rsquo;s very simple yet elegant attack which can lead to full plaintext recovery by just observing the decryption oracle errors.</p>
+<p>This post is about padding oracle attack in CBC-mode block ciphers. I will try to explain how the attack works. A padding oracle is a decryption function which leaks validitidy of the encrypted data, it allows an attacker to decrypt encrypted data without any knowledge of the key. It&rsquo;s very simple yet elegant attack which can lead to full plaintext recovery by just observing the decryption oracle errors.</p>
 <h2 id=padding class=anchor-link><a href=#padding>Padding</a></h2>
 <p>As the name suggest, block ciphers encrypt/decrypt messages in blocks of certain size. When data doesn&rsquo;t match the block size, it has to be padded in a specific format so that the receiver is able to identify the padding and remove it. A commonly used padding scheme is PKCS#7, where the final block of plaintext is padded with N bytes of value N.</p>
 <p>For example, for an 8-byte block, if the plaintext is of 3-bytes, 5-bytes of padding will be added (green is plaintext and yellow is padding):</p>
